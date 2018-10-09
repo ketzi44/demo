@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script type="text/javascript" src="build/iscroll.js"></script>
+    <script type="text/javascript">
+        var myScroll;
+
+        function loaded() {
+            myScroll = new IScroll('#scrollCasino', {mouseWheel: true});
+        }
+    </script>
+    <script src="js/pixi.min.js"></script>
+    <script src="js/road.js"></script>
+    <link rel="stylesheet" href="stylesheets/list.css">
+    <link rel="stylesheet" href="stylesheets/bcp.css">
+    <title>百家乐</title>
+
+</head>
+<body>
+<div id="app">
+    <div class="main" id="main">
+    </div>
+</div>
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script type="text/babel">
+
+    const bodyWidth = document.body.offsetWidth; //宽度
+    const Application = PIXI.Application,
+        loader = PIXI.loader;
+
+    loader.add("images/roadMap.json")
+        .load(setup);
+
+    class BcpVideo extends React.Component {
+        render() {
+            return (
+                <div className="bcp-video">
+                    <div className="bcp-video-info">
+                        <div className="bcp-video-info-header">
+                            <div className="bcp-video-info-header-col"><span className="char4 code">2802</span></div>
+                            <div className="bcp-video-info-header-col cn"><span>欢迎您：</span><span>访客</span></div>
+                            <div className="bcp-video-info-header-col right">
+                            </div>
+                        </div>
+                        <span className="tip fund"><span
+                            className="coin"></span><span>本金：</span><span>0</span> <span>台面：</span><span>0</span></span>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+
+    class BcpRoadmap extends React.Component {
+        render() {
+            return (
+                <div className="bcp-roadmap" style={bcpRoadMapStyle}>
+                    <div className="bcp-roadmap-info">
+                        <div className="bcp-roadmap-info-col">
+                            <span className="left">局</span>
+                            <span className="digit2">51</span>
+                        </div>
+                        <div className="bcp-roadmap-info-col bkr"><span className="left">庄</span><span
+                            className="digit2">27</span></div>
+                        <div className="bcp-roadmap-info-col plr"><span className="left">闲</span><span
+                            className="digit2">19</span></div>
+                        <div className="bcp-roadmap-info-col tie"><span className="left">和</span><span
+                            className="digit2">4</span></div>
+                        <div className="bcp-roadmap-info-col bkrpair"><span className="left">庄对</span><span
+                            className="digit2">6</span></div>
+                        <div className="bcp-roadmap-info-col plrpair"><span className="left">闲对</span><span
+                            className="digit2">3</span></div>
+                    </div>
+                    <div className="bcp-roadmap-roadmap" style={bcpRoadMapRoadMapStyle}>
+                    </div>
+                    <div className="ask" style={{paddingTop: 170}}>
+                        <button className="bkr"><span>庄</span>
+                            <span className={className1}></span>
+                            <span className="single-background ask_icon0001"></span>
+                            <span className="single-background ask_icon0001"></span>
+                        </button>
+                        <button className="plr"><span>闲</span>
+                            <span className="single-background ask_icon0001"></span>
+                            <span className="single-background ask_icon0001"></span>
+                            <span className="single-background ask_icon0001"></span>
+                        </button>
+                    </div>
+                </div>
+
+            );
+        }
+    }
+
+    class BcpBet extends React.Component {
+        constructor(props) {
+            super(props);
+            // this.roadDivId = "roadMap" + props.tableId;
+            this.state = {
+                bankerBetCoin: 0,
+                playerBetCoin: 0,
+                tieBetCoin: 0,
+                bankerPairBetCoin: 0,
+                playerPairBetCoin: 0,
+                // confirmClass: "confirm1 disabled",
+                // confirmClass: ["confirm1","disabled"],
+                hasBetCoin: false,
+                showLimitMenu: false,
+                activeChip: ''
+            };
+            this.sum = 0;
+            this.coinAmount = 0;
+            // this.addCoinClick = this.addCoinClick.bind(this);
+            this.clearBet = this.clearBet.bind(this);
+            // this.numbers = [1, 2, 3, 4, 5];
+            // this.listItems = numbers.map((number) =>
+            //     <li>{number}</li>
+            // );
+        }
+
+
+        limitMenu(e) {
+            this.setState({
+                showLimitMenu: this.state.showLimitMenu ? false : true
+            });
+        }
+
+        clearBet(e) {
+            this.sum = 0;
+            this.setState({
+                bankerBetCoin: 0,
+                playerBetCoin: 0,
+                tieBetCoin: 0,
+                bankerPairBetCoin: 0,
+                playerPairBetCoin: 0,
+                hasBetCoin: false
+            });
+        }
+
+        cancelBet(e) {
+            console.info("cancel ...");
+            this.clearBet();
+        }
+
+        repeatBet(e) {
+            console.info("repeat ...");
+        }
+
+
+        confirmBet(e) {
+            console.info("confirm ...");
+            console.info("playerPairBetCoin = " + this.state.playerPairBetCoin);
+            console.info("tieBetCoin = " + this.state.tieBetCoin);
+            console.info("bankerPairBetCoin = " + this.state.bankerPairBetCoin);
+            console.info("playerBetCoin = " + this.state.playerBetCoin);
+            console.info("bankerBetCoin = " + this.state.bankerBetCoin);
+
+        }
+
+        selectCoin(chip, coinAmount, e) {
+            this.coinAmount = coinAmount;
+            this.setState({
+                activeChip: chip
+            });
+        }
+
+        addCoinClick(type, e) {
+            this.sum += this.coinAmount;
+            // console.info("addCoinClick ..."+this.sum);
+            if (this.sum > 0) {
+                this.setState({
+                    hasBetCoin: true
+                });
+            }
+            switch (type) {
+                case 0:
+                    this.setState({
+                        playerPairBetCoin: this.state.playerPairBetCoin + this.coinAmount
+                    });
+                    break;
+                case 1:
+                    this.setState({
+                        tieBetCoin: this.state.tieBetCoin + this.coinAmount
+                    });
+                    break;
+                case 2:
+                    this.setState({
+                        bankerPairBetCoin: this.state.bankerPairBetCoin + this.coinAmount
+                    });
+                    break;
+                case 3:
+                    this.setState({
+                        playerBetCoin: this.state.playerBetCoin + this.coinAmount
+                    });
+                    break;
+                case 4:
+                    this.setState({
+                        bankerBetCoin: this.state.bankerBetCoin + this.coinAmount
+                    });
+                    break;
+            }
+        }
+
+        render() {
+            return (
+                <div className="bcp-bet" style={bcpBetStyle}>
+                    <div className="area">
+                        <div className="bcp-betarea ppair" onClick={(e) => this.addCoinClick(0, e)}>
+                            <div className="bet">
+                                <div className="v-center">
+                                    <div className="text">闲对 P.P.</div>
+                                    <div className="amount"><span
+                                        className="coin">{this.state.playerPairBetCoin == 0 ? '' : this.state.playerPairBetCoin}</span><span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bcp-betarea tie1" onClick={(e) => this.addCoinClick(1, e)}>
+                            <div className="bet">
+                                <div className="v-center">
+                                    <div className="text">和 Tie</div>
+                                    <div className="amount"><span
+                                        className="coin">{this.state.tieBetCoin == 0 ? '' : this.state.tieBetCoin}</span><span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bcp-betarea bpair" onClick={(e) => this.addCoinClick(2, e)}>
+                            <div className="bet">
+                                <div className="v-center">
+                                    <div className="text">庄对 B.P.</div>
+                                    <div className="amount">
+                                        <span
+                                            className="coin">{this.state.bankerPairBetCoin == 0 ? '' : this.state.bankerPairBetCoin}</span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bcp-betarea player" onClick={(e) => this.addCoinClick(3, e)}>
+                            <div className="bet">
+                                <div className="v-dynamic-r">
+                                    <div className="text">闲 Player</div>
+                                    <div className="amount"><span
+                                        className="coin">{this.state.playerBetCoin == 0 ? '' : this.state.playerBetCoin}</span><span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bcp-betarea banker" onClick={(e) => this.addCoinClick(4, e)}>
+                            <div className="bet">
+                                <div className="v-dynamic-l">
+                                    <div className="text">庄 Banker</div>
+                                    <div className="amount"><span
+                                        className="coin">{this.state.bankerBetCoin == 0 ? '' : this.state.bankerBetCoin}</span><span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button disabled="disabled" className="pass none">飞牌</button>
+                        <button className={`repeat ${this.state.hasBetCoin ? 'none' : ''}`}
+                                onClick={(e) => this.repeatBet(e)}>重复
+                        </button>
+                        <button className={`clear ${this.state.hasBetCoin ? '' : 'none'}`} onClick={this.clearBet}>重置
+                        </button>
+                    </div>
+                    <div className="chips">
+                        <img src="images/asset/chip_bg.png" alt="" className="bg"/>
+                        <div className="chips-container" style={chipsContainerStyle}>
+                            <ul className="chip-count10">
+                                {this.props.chips.map((chip) =>
+                                    <li key={chip.id}
+                                        className={`${chip.chip} ${this.state.activeChip === chip.chip ? 'active' : ''} cn`}
+                                        onClick={this.selectCoin.bind(this, chip.chip, chip.coin)}></li>
+                                )}
+                            </ul>
+                        </div>
+                        <button className="cancel" onClick={(e) => this.cancelBet(e)}>取消</button>
+                        <button className={`cancel1 disabled ${this.state.hasBetCoin ? "none" : ''}`}></button>
+                        <button className="confirm" onClick={(e) => this.confirmBet(e)}>确定</button>
+                        <button className={`confirm1 disabled ${this.state.hasBetCoin ? "none" : ''}`}></button>
+                    </div>
+                    <div className={`limitmenu ${this.state.showLimitMenu ? 'active' : ''}`}
+                         onClick={(e) => this.limitMenu(e)}>
+                        <div className="table">
+                            <div className="tr">
+                                <div className="td"><span>限红</span> <span>500</span><span> - </span><span>100,000</span>
+                                    <span className="jfont-lg jfont-i009"></span>
+                                </div>
+                            </div>
+                            <div className="group">
+                                <div className="tr">
+                                    <div className="td"><span>最高投注</span> <span>100,000</span></div>
+                                    <div className="td"><span>最低投注</span> <span>500</span></div>
+                                </div>
+                                <div className="tr">
+                                    <div className="td"><span>对子最高</span> <span>9,000</span></div>
+                                    <div className="td"><span>对子最低</span> <span>100</span></div>
+                                </div>
+                                <div className="tr">
+                                    <div className="td"><span>和注最高</span> <span>12,500</span></div>
+                                    <div className="td"><span>和注最低</span> <span>100</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+
+    class Bcp extends React.Component {
+        render() {
+            return (
+                <div className="scene">
+                    <BcpVideo/>
+                    <BcpRoadmap/>
+                    <BcpBet chips={chips}/>
+                </div>
+            );
+        }
+    }
+
+    var chips = [];
+    var bcpRoadMapStyle, bcpRoadMapRoadMapStyle, bcpBetStyle, chipsContainerStyle, className1;
+
+    function showBcpPage(tableId) {
+
+        bcpRoadMapStyle = {
+            paddingTop: 192.391
+        };
+        bcpRoadMapRoadMapStyle = {
+            paddingTop: 170
+        };
+
+        bcpBetStyle = {
+            height: 311.609
+        };
+
+        chipsContainerStyle = {
+            touchAction: 'none'
+        };
+
+        className1 = "single-background ask_icon0001";
+
+        chips = [
+            {id: 1, chip: 'chip1', coin: 5},
+            {id: 2, chip: 'chip2', coin: 10},
+            {id: 3, chip: 'chip3', coin: 25},
+            {id: 4, chip: 'chip4', coin: 50},
+            {id: 5, chip: 'chip5', coin: 100},
+            {id: 6, chip: 'chip6', coin: 500},
+            {id: 7, chip: 'chip7', coin: 1000},
+            {id: 8, chip: 'chip8', coin: 5000},
+            {id: 9, chip: 'chip9', coin: 10000},
+            // {id: 10, chip: 'chip10', coin: 25000},
+            // {id: 11, chip: 'chip11', coin: 50000},
+            // {id: 12, chip: 'chip12', coin: 100000},
+            // {id: 13, chip: 'chip13', coin: 500000},
+            // {id: 14, chip: 'chip14', coin: 1000000},
+            {id: 15, chip: 'chip15', coin: 9999999}
+        ];
+
+
+        ReactDOM.render(
+            <Bcp/>,
+            document.getElementById('main')
+        );
+    }
+
+    class MainList extends React.Component {
+        render() {
+            return (
+                <div className="scene-switch">
+                    <div className="lobby scene">
+                        <div className="header">
+                            <div className="header-row1">
+                                <div>Logo</div>
+                            </div>
+                            <div className="header-row2">
+                                <div className="service">24小时热线</div>
+                                <div className="service tel">+853-62626128</div>
+                            </div>
+                            <div className="header-row3">
+                                <span className="welcome">欢迎您：</span>
+                                <span className="welcome">访客</span>
+                            </div>
+                        </div>
+                        <div className="info">
+                            <div className="spot">
+                                <div className="title">可出筹码</div>
+                                <div className="amount">0</div>
+                            </div>
+                            <div className="spot">
+                                <div className="title">是场本金</div>
+                                <div className="amount">0</div>
+                            </div>
+                            <div className="spot">
+                                <div className="title">桌上筹码</div>
+                                <div className="amount">0</div>
+                            </div>
+                        </div>
+                        <div className="main">
+                            <div className="casino">
+                                <div className="tab">
+                                    <ul>
+                                        <li className='active'><a>全部投注区</a></li>
+                                        <li className=""><a>高额区</a></li>
+                                        <li className=""><a>低额区</a></li>
+                                    </ul>
+                                </div>
+
+                                <div id="scrollCasino">
+                                    <div id="scroller">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+
+    // let mainDiv = document.getElementById('main');
+    var tableWidth, roadMaxCol, defaultRoadWidth, defaultRoadHeight, info;
+    var casinoTableStyle;
+    var tableIds = [];
+    var roadScale = 1;
+
+    function showListPage() {
+        tableWidth = bodyWidth;
+        roadMaxCol = 13;
+        if (bodyWidth >= 600) {
+            tableWidth = bodyWidth / 2;
+        } else if (bodyWidth >= 600) {
+            tableWidth = bodyWidth / 2;
+        }
+        if (tableWidth >= 600) {
+            roadMaxCol = 25;
+        }
+        defaultRoadWidth = defaultRoadTdWidth * roadMaxCol,
+            defaultRoadHeight = defaultRoadTdHeight * 6;
+        casinoTableStyle = {
+            width: tableWidth
+        };
+        tableIds = [2501, 2502, 2503, 2504, 2505];
+
+        ReactDOM.render(
+            <MainList/>,
+            document.getElementById('main')
+        );
+        if (document.getElementById('scroller') !== undefined) {
+            ReactDOM.render(
+                <CasinoTables tableIds={tableIds}/>,
+                document.getElementById('scroller')
+            );
+            initRoad();
+        }
+    }
+
+    function showCasinoTables() {
+
+    }
+
+    function tableClick(tableId, e) {
+        console.log(tableId);
+        showBcpPage(tableId);
+    }
+
+    class CasinoTable extends React.Component {
+        constructor(props) {
+            super(props);
+            this.roadDivId = "roadMap" + props.tableId;
+            this.state = {
+                casinoTableStyle: casinoTableStyle,
+                bankerResultCount: 0,
+                playerResultCount: 0,
+                tieResultCount: 0,
+                bankerPairCount: 0,
+                playerPairCount: 0,
+                tiePairCount: 0
+            };
+        }
+
+        componentDidMount() {
+            this.timerID = setInterval(
+                () => this.tick(),
+                1000
+            );
+        }
+
+        componentWillUnmount() {
+            clearInterval(this.timerID);
+        }
+
+        tick() {
+            let road = casionTable.get(this.props.tableId);
+            if (road !== undefined) {
+                this.setState({
+                    bankerResultCount: road.getBankerResultCount,
+                    playerResultCount: road.getPlayerResultCount,
+                    tieResultCount: road.getTieResultCount,
+                    bankerPairCount: road.getBankerPairCount,
+                    playerPairCount: road.getPlayerPairCount,
+                });
+            }
+        }
+
+        render() {
+            return (<div className="casino-table" style={this.state.casinoTableStyle} >
+                    <div className="casino-table-info">
+
+                        <div className="casino-table-header">
+                            <div className="id">
+                                <span className="char4 spot">{this.props.tableId}</span>
+                            </div>
+                            <div className="status">
+                                <span>庄</span> <span
+                                className="digit2 spot">{this.state.bankerResultCount}</span>
+                                <span>闲</span> <span
+                                className="digit2 spot">{this.state.playerResultCount}</span>
+                                <span>和</span> <span
+                                className="digit2 spot">{this.state.tieResultCount}</span>
+                                <span>庄对</span> <span
+                                className="digit2 spot">{this.state.bankerPairCount}</span>
+                                <span>闲对</span> <span
+                                className="digit2 spot">{this.state.playerPairCount}</span>
+                            </div>
+                            <div className="limitmin">
+                                <span>最低投注</span>
+                                <span className="digit5 spot">5,000</span>
+                            </div>
+                        </div>
+                        <div className="casino-table-main">
+                            <div className="casino-table-float" onClick={tableClick.bind(this, this.props.tableId)}></div>
+                            <div className="roadmap" id={this.roadDivId}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+
+    function CasinoTables(props) {
+        const tableIds = props.tableIds;
+        const casinoTableItems = tableIds.map((tableId) =>
+            // 又对啦！key应该在数组的上下文中被指定
+            <CasinoTable key={tableId.toString()}
+                         tableId={tableId}/>
+        );
+
+        return (
+            <div>
+                {casinoTableItems}
+            </div>
+        );
+    }
+
+
+    function setup() {
+        showListPage();
+    }
+
+
+    function createCasionTable(tableId, markerRoadArray) {
+
+
+        let app = new Application({
+                width: defaultRoadWidth,
+                height: defaultRoadHeight,
+                x: 0,
+                y: 0,
+                antialiasing: true,
+                transparent: false,
+                resolution: 1
+            }
+        );
+        app.renderer.x = 0;
+        app.renderer.y = 0;
+        app.renderer.backgroundColor = 0xFFFFFF;
+        app.renderer.view.style.setProperty("width", defaultRoadWidth * roadScale + "px");
+        app.renderer.view.style.setProperty("height", defaultRoadHeight * roadScale + "px");
+
+        document.getElementById("roadMap" + tableId).appendChild(app.view);
+
+        const road1 = new Road();
+        //road1.addRoadBackground(app);
+        for (let i = 0; i < markerRoadArray.length; i++) {
+            let addResult = road1.addMarkerRoad(markerRoadArray[i]);
+            road1.addRoadChild(app, 0, addResult);
+        }
+
+        casionTable.set(tableId, road1);
+    }
+
+    function initRoad() {
+        console.log('initRoad...');
+        info = document.getElementsByClassName("casino-table-main")[0];
+        if (info !== undefined) {
+            roadScale = info.offsetWidth / defaultRoadWidth;
+        }
+
+        let markerRoad2501Array = [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1,
+            2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1];
+
+        if (tableIds.length > 0) {
+            createCasionTable(2501, markerRoad2501Array);
+            createCasionTable(2502, []);
+            createCasionTable(2503, []);
+            createCasionTable(2504, []);
+            createCasionTable(2505, []);
+        }
+    }
+</script>
+</body>
+</html>

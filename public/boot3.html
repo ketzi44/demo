@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script type="text/javascript" src="build/iscroll.js"></script>
+    <script type="text/javascript">
+        var myScroll;
+        function loaded() {
+            myScroll = new IScroll('#scrollCasino', {mouseWheel: true});
+        }
+    </script>
+    <script src="js/pixi.min.js"></script>
+    <script src="js/road.js"></script>
+    <link rel="stylesheet" href="stylesheets/list.css">
+    <title>百家乐</title>
+</head>
+<body >
+<div id="app">
+    <div class="main"  id="main">
+        <div class="scene-switch">
+            <div class="lobby scene">
+                <div class="header">
+                    <div class="header-row1">
+                        <div>Logo</div>
+                        <!--<div class="single-background" style="height: 100%; background-image: url(); background-position: left center;">-->
+                        <!--</div>-->
+                    </div>
+                    <div class="header-row2">
+                        <div class="service">24小时热线</div>
+                        <div class="service tel">+853-62626128</div>
+                    </div>
+                    <div class="header-row3">
+                        <span class="welcome">欢迎您：</span>
+                        <span class="welcome">访客</span>
+                    </div>
+                </div>
+                <div class="info">
+                    <div class="spot">
+                        <div class="title">可出筹码</div>
+                        <div class="amount">0</div>
+                    </div>
+                    <div class="spot" style="display: none">
+                        <div class="title">公司存额</div>
+                        <div class="amount">0</div>
+                    </div>
+                    <div class="spot">
+                        <div class="title">是场本金</div>
+                        <div class="amount">0</div>
+                    </div>
+                    <div class="spot">
+                        <div class="title">桌上筹码</div>
+                        <div class="amount">0</div>
+                    </div>
+                </div>
+                <div class="main">
+                    <div class="casino">
+                        <div class="tab" >
+                            <ul>
+                                <li class="active"><a>全部投注区</a></li>
+                                <li class=""><a>高额区</a></li>
+                                <li class=""><a>低额区</a></li>
+                            </ul>
+                        </div>
+
+                        <div id="scrollCasino">
+                            <div id="scroller">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+            <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+            <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+            <script type="text/babel">
+
+                class mainList extends React.Component {
+
+                }
+
+
+
+
+
+
+
+
+
+
+                let mainDiv = document.getElementById('main');
+                let w = mainDiv.offsetWidth; //宽度
+                let tableWidth = w;
+                var roadMaxCol = 13;
+                if (w >= 600) {
+                    tableWidth = w / 2;
+                } else if (w >= 600) {
+                    tableWidth = w / 2;
+                }
+
+                if (tableWidth >= 600) {
+                    roadMaxCol = 25;
+                }
+
+                const defaultRoadWidth = defaultRoadTdWidth * roadMaxCol,
+                    defaultRoadHeight = defaultRoadTdHeight * 6;
+
+
+                var casinoTableStyle = {
+                    width: tableWidth
+                };
+
+                function tableClick(tableId,e){
+                    console.log(tableId);
+                }
+
+                class CasinoTable extends React.Component {
+                    constructor(props) {
+                        super(props);
+                        this.roadDivId = "roadMap" + props.tableId;
+                        this.state = {
+                            casinoTableStyle: casinoTableStyle,
+                            bankerResultCount: 0,
+                            playerResultCount: 0,
+                            tieResultCount: 0,
+                            bankerPairCount: 0,
+                            playerPairCount: 0,
+                            tiePairCount: 0
+                        };
+                    }
+
+                    componentDidMount() {
+                        this.timerID = setInterval(
+                            () => this.tick(),
+                            1000
+                        );
+                    }
+
+                    componentWillUnmount() {
+                        clearInterval(this.timerID);
+                    }
+
+                    tick() {
+                        let road = casionTable.get(this.props.tableId);
+                        if (road !== undefined) {
+                            this.setState({
+                                bankerResultCount: road.getBankerResultCount,
+                                playerResultCount: road.getPlayerResultCount,
+                                tieResultCount: road.getTieResultCount,
+                                bankerPairCount: road.getBankerPairCount,
+                                playerPairCount: road.getPlayerPairCount,
+                                tiePairCount: road.getTiePairCount
+                            });
+                        }
+                    }
+
+                    render() {
+                        return (<div className="casino-table" style={this.state.casinoTableStyle} onClick={tableClick.bind(this,this.props.tableId)}>
+                                <div className="casino-table-info">
+                                    <div className="casino-table-header">
+                                        <div className="id">
+                                            <span className="char4 spot">{this.props.tableId}</span>
+                                        </div>
+                                        <div className="status">
+                                            <span>庄</span> <span
+                                            className="digit2 spot">{this.state.bankerResultCount}</span>
+                                            <span>闲</span> <span
+                                            className="digit2 spot">{this.state.playerResultCount}</span>
+                                            <span>和</span> <span
+                                            className="digit2 spot">{this.state.tieResultCount}</span>
+                                            <span>庄对</span> <span
+                                            className="digit2 spot">{this.state.bankerPairCount}</span>
+                                            <span>闲对</span> <span
+                                            className="digit2 spot">{this.state.playerPairCount}</span>
+                                        </div>
+                                        <div className="limitmin">
+                                            <span>最低投注</span>
+                                            <span className="digit5 spot">5,000</span>
+                                        </div>
+                                    </div>
+                                    <div className="casino-table-main">
+                                        <div className="roadmap" id={this.roadDivId}>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+                }
+
+
+                function CasinoTables(props){
+                    const tableIds = props.tableIds;
+                    const casinoTableItems = tableIds.map((tableId) =>
+                        // 又对啦！key应该在数组的上下文中被指定
+                        <CasinoTable key={tableId.toString()}
+                                     tableId={tableId} />
+
+                    );
+
+                    return (
+                        <div>
+                            {casinoTableItems}
+                        </div>
+                    );
+                }
+
+                let tableIds = [2501,2502,2503,2504,2505];
+
+                ReactDOM.render(
+                    <CasinoTables tableIds={tableIds} />,
+                    document.getElementById('scroller')
+                );
+
+
+
+                const Application = PIXI.Application,
+                    loader = PIXI.loader;
+                //
+                // defaultRoadWidth = defaultRoadTdWidth*25,
+
+
+                loader.add("images/roadMap.json")
+                    .load(setup);
+
+                function setup() {
+                    initRoad();
+                }
+
+                let info = document.getElementsByClassName("casino-table-main")[0];
+                var roadScale = info.offsetWidth / defaultRoadWidth;
+                console.log(info);
+
+
+                function createCasionTable(tableId, markerRoadArray) {
+
+
+                    let app = new Application({
+                            width: defaultRoadWidth,
+                            height: defaultRoadHeight,
+                            x: 0,
+                            y: 0,
+                            antialiasing: true,
+                            transparent: false,
+                            resolution: 1
+                        }
+                    );
+                    app.renderer.x = 0;
+                    app.renderer.y = 0;
+                    app.renderer.backgroundColor = 0xFFFFFF;
+                    app.renderer.view.style.setProperty("width", defaultRoadWidth * roadScale + "px");
+                    app.renderer.view.style.setProperty("height", defaultRoadHeight * roadScale + "px");
+
+                    document.getElementById("roadMap" + tableId).appendChild(app.view);
+
+                    const road1 = new Road();
+                    //road1.addRoadBackground(app);
+                    for (let i = 0; i < markerRoadArray.length; i++) {
+                        let addResult = road1.addMarkerRoad(markerRoadArray[i]);
+                        road1.addRoadChild(app, 0, addResult);
+                    }
+
+                    casionTable.set(tableId, road1);
+                }
+
+                function initRoad() {
+                    let markerRoad2501Array = [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1,
+                        2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1];
+
+                    createCasionTable(2501, markerRoad2501Array);
+                    createCasionTable(2502, []);
+                    createCasionTable(2503, []);
+                    createCasionTable(2504, []);
+                    createCasionTable(2505, []);
+                    loaded();
+                }
+            </script>
+        </div>
+    </div>
+</div>
+</body>
+</html>

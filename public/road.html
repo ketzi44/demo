@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+<head>
+<style>
+    * {padding: 0; margin: 0}
+    body, html {
+        margin: 0px;
+        height: 100%;
+        overflow: hidden;
+    }
+</style>
+</head>
+<body>
+    <!--<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>-->
+    <script  src="js/pixi.min.js"></script>
+    <script  src="js/road.js"></script>
+    <script>
+
+            let roadScale = 0.4,
+                defaultPadding =(100-85)/2,
+                defaultRoadTdWidth =100,
+                defaultRoadTdHeight =100,
+                defaultRoadWidth = 100*25,
+                defaultRoadHeight = 100*6;
+
+            //Aliases
+            let Application = PIXI.Application,
+                Container = PIXI.Container,
+                loader = PIXI.loader,
+                resources = PIXI.loader.resources,
+                TextureCache = PIXI.utils.TextureCache,
+                Sprite = PIXI.Sprite,
+                Rectangle = PIXI.Rectangle;
+
+            //Create a Pixi Application
+            let app = new Application({
+                    width: defaultRoadWidth*roadScale+1,
+                    height:  defaultRoadHeight*roadScale+1,
+                    x:100,
+                    y:100,
+                    antialiasing: true,
+                    transparent: false,
+                    resolution: 1
+                }
+            );
+            app.renderer.x =100;
+            app.renderer.y =100;
+            app.renderer.backgroundColor = 0xFFFFFF;
+
+            // app.renderer.view.style.position = "absolute";
+            // app.renderer.view.style.display = "block";
+            // app.renderer.autoResize = true;
+            // app.renderer.resize(window.innerWidth, window.innerHeight);
+
+            //Add the canvas that Pixi automatically created for you to the HTML document
+            document.body.appendChild(app.view);
+
+
+
+
+        //load an image and run the `setup` function when it's done
+        PIXI.loader
+            .add("images/roadMap.json")
+            .load(setup);
+
+
+        // let banker,bankerPairB,bankerPairBP,bankerPairP,
+        //     player,playerPairB,playerPairBP,playerPairP,
+        //     tie,tiePairB,tiePairBP,tiePairP,
+        //     bigEyeBlue,bigEyeRed,smallBlue,smallRed,cockroachBlue,cockroachRed,
+        //     tie1,tie2,tie3,tie4,tie5,tie6,tie7,tie8,tie9;
+
+        let roadChildArray = [
+            ["banker.png","player.png","tie.png"],
+            ["bigRed.png","bigBlue.png"],
+            ["bigRed.png","bigBlue.png"],
+            ["smallRed.png","smallBlue.png"],
+            ["cockroachRed.png","cockroachBlue.png"],
+            ["tie1.png","tie2.png","tie3.png","tie4.png","tie5.png","tie6.png","tie7.png","tie8.png","tie9.png"],
+            ["bankerPairB.png","bankerPairP.png","bankerPairBP.png","playerPairB.png","playerPairP.png","playerPairBP.png","tiePairB.png","tiePairP.png","tiePairBP.png"],
+            ["bigRedPairB.png","bigRedPairP.png","bigRedPairBP.png","bigBluePairB.png","bigBluePairP.png","bigBluePairBP.png"]
+        ];
+
+        function setup() {
+            initShowRoad();
+        }
+        function createRoadChild(roadType,result){
+            let imgName =  roadChildArray[roadType][result-1];
+            let texture = TextureCache[imgName];
+            let sprite = new Sprite(texture);
+            let scale = roadScale;
+            switch (roadType) {
+                case 1:
+               case 5:
+                    //大路缩小2倍
+                    scale=roadScale/2;
+                    break;
+                case 2:
+                case 3:
+                case 4:
+                    //大眼路，小路，曱甴路缩小4倍
+                    scale=roadScale/4;
+                    break;
+            }
+            sprite.scale.x = scale;
+            sprite.scale.y = scale;
+            return sprite;
+        }
+
+        function initShowRoad(){
+            let initMarkerRoadArray = [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1,
+                2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 3, 1, 2, 1, 2, 3, 3, 2, 2, 2, 2];
+            const road1 = new Road("default");
+            addRoadBackground();
+            for (let i = 0; i < initMarkerRoadArray.length; i++) {
+                let addResult =  road1.addMarkerRoad(initMarkerRoadArray[i]);
+                addRoadChild(0,addResult);
+            }
+        }
+        //添加路纸背景
+        function addRoadBackground(){
+            //draw background line
+            let lineColor =  0x000000;
+
+            for (let col = 0;col <=6;col++){
+                let line = new PIXI.Graphics();
+                let y = col*defaultRoadTdHeight*roadScale;
+                line.lineStyle(1, lineColor, 0.1);
+                line.moveTo(0, y);
+                line.lineTo(defaultRoadWidth, y);
+                line.x = 0;
+                line.y = 0;
+                app.stage.addChild(line);
+            }
+            for (let col = 1;col <= 6;col++){
+                let line = new PIXI.Graphics();
+                let y = (col-0.5)*defaultRoadTdHeight*roadScale;
+                line.lineStyle(1, lineColor, 0.1);
+                line.moveTo(11*defaultRoadTdWidth*roadScale, y);
+                line.lineTo(defaultRoadWidth, y);
+                line.x = 0;
+                line.y = 0;
+                app.stage.addChild(line);
+            }
+            for (let row = 0;row <= 25;row++){
+                let line = new PIXI.Graphics();
+                let x = row*defaultRoadTdWidth*roadScale+0.1;
+                line.lineStyle(1, lineColor, 0.1);
+                line.moveTo(x, 0);
+                line.lineTo(x, defaultRoadHeight);
+                line.x = 0;
+                line.y = 0;
+                app.stage.addChild(line);
+            }
+
+            for (let row = 1;row <= 25;row++){
+                let line = new PIXI.Graphics();
+                let x = (row-0.5)*defaultRoadTdWidth*roadScale+11*defaultRoadTdWidth*roadScale+0.1;
+                line.lineStyle(1, lineColor, 0.1);
+                line.moveTo(x, 0);
+                line.lineTo(x, defaultRoadHeight);
+                line.x = 0;
+                line.y = 0;
+                app.stage.addChild(line);
+            }
+        }
+
+        //添加路纸精灵
+        function addRoadChild(stageIndex,addResult){
+            if(addResult[0]!==-1){
+                //Marker Road
+                let startX = 0;
+                let startY = 0;
+                addRoadChildDetail(0,startX,startY,addResult[0],addResult[1],addResult[2]);
+            }
+            if(addResult[3]!==-1){
+                //Big Road
+                let startX = defaultRoadTdWidth * 11 * roadScale;
+                let startY = 0;
+                addRoadChildDetail(1,startX,startY,addResult[3],addResult[4],addResult[5]);
+                let tieCount = parseInt(addResult[5]/10);
+                if(tieCount>=1){
+                    addRoadChildDetail(5,startX,startY,addResult[3],addResult[4],tieCount);
+                }
+            }
+            if(addResult[6]!==-1){
+                //Big Eye Road
+                let startX = defaultRoadTdWidth * 11 * roadScale;
+                let startY = defaultRoadTdHeight * 3 * roadScale;
+                addRoadChildDetail(2,startX,startY,addResult[6],addResult[7],addResult[8]);
+            }
+            if(addResult[9]!==-1){
+                let startX = defaultRoadTdWidth * 11 * roadScale;
+                let startY = defaultRoadTdHeight * 4.5 * roadScale;
+                addRoadChildDetail(3,startX,startY,addResult[9],addResult[10],addResult[11]);
+            }
+
+            if(addResult[12]!==-1){
+                let startX = defaultRoadTdWidth * 17.5 * roadScale;
+                let startY = defaultRoadTdHeight * 4.5 * roadScale;
+                addRoadChildDetail(4,startX,startY,addResult[12],addResult[13],addResult[14]);
+            }
+            //console.log(addResult);
+        }
+
+        function addRoadChildDetail(roadType,startX,startY,x,y,result){
+            let childScale = 0.25;
+            if(roadType===1 || roadType===5){
+                childScale = 0.5;
+            }else if(roadType===0){
+                childScale = 1;
+            }
+            let padding = defaultPadding * roadScale * childScale;
+            let childX = startX + padding + x * defaultRoadTdWidth * roadScale * childScale;
+            let childY = startY + padding + y * defaultRoadTdHeight * roadScale * childScale;
+            let child = createRoadChild(roadType,result);
+            child.x = childX;
+            child.y = childY;
+            app.stage.addChild(child);
+        }
+
+
+
+        function show(tileset){
+            // let tie3 = createRoadChild(5,3-1);
+            // tie3.x=85;
+            // tie3.y=0;
+            // app.stage.addChild(tie3);
+
+
+            let tie2 = createRoadChild(5,3-1);
+            tie2.x=100;
+            tie2.y=100;
+            tie2.scale.x = 0.5/3;
+            tie2.scale.y = 0.5/3;
+           // tie2.scale.x = roadScale;
+            //tie2.scale.y = roadScale;
+
+            app.stage.addChild(tie2);
+
+          //  let tx  = createRoadChild(5,2-1);
+           // tx.x =200;
+//
+           // app.stage.addChild(tx);
+
+        }
+       // setTimeout("show('cat')", 1000 );
+
+
+    </script>
+
+</body>
+</html>

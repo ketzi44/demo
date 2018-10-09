@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+<style>
+    * {padding: 0; margin: 0}
+    body, html {
+        margin: 0px;
+        height: 100%;
+        overflow: hidden;
+    }
+</style>
+</head>
+<body>
+    <!--<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>-->
+    <script  src="js/road.js"></script>
+    <script>
+        const road1 = new Road([2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1,
+            2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 3, 1, 2, 1, 2, 3, 3, 2, 2, 2, 2]);
+        let bigRoad = road1.getBigRoad;
+        let bigEyeRoad = road1.getBigEyeRoad;
+        let smallRoad = road1.getSmallRoad;
+        let cockroachRoad = road1.getCockroachRoad;
+        console.log(bigRoad);
+        console.log(bigEyeRoad);
+        console.log(smallRoad);
+        console.log(cockroachRoad);
+      // const r = new Road(1);
+     //  alert(r.markerRoad);
+    </script>
+
+</body>
+</html>
