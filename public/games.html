@@ -516,8 +516,8 @@
         }
 
         render() {
-            return (<div className="casino-table" style={this.state.casinoTableStyle} >
-                    <div className="casino-table-info">
+            return (<div className="casino-table" style={this.state.casinoTableStyle} onClick={tableClick.bind(this, this.props.tableId)} >
+                    <div className="casino-table-info" >
 
                         <div className="casino-table-header">
                             <div className="id">
@@ -541,7 +541,6 @@
                             </div>
                         </div>
                         <div className="casino-table-main">
-                            <div className="casino-table-float" onClick={tableClick.bind(this, this.props.tableId)}></div>
                             <div className="roadmap" id={this.roadDivId}>
                             </div>
                         </div>
@@ -620,6 +619,7 @@
             createCasionTable(2503, []);
             createCasionTable(2504, []);
             createCasionTable(2505, []);
+            loaded();
         }
     }
 </script>
