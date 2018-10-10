@@ -31,6 +31,7 @@
 <script type="text/babel">
 
     const bodyWidth = document.body.offsetWidth; //宽度
+    const bodyHeight = document.body.offsetHeight; //宽度
     const Application = PIXI.Application,
         loader = PIXI.loader;
 
@@ -331,16 +332,33 @@
     var bcpRoadMapStyle, bcpRoadMapRoadMapStyle, bcpBetStyle, chipsContainerStyle, className1;
 
     function showBcpPage(tableId) {
+        let minBetHeight = 180;
+        let videoHeight = bodyWidth * 0.565039;
 
-        bcpRoadMapStyle = {
-            paddingTop: 192.391
-        };
+        let roadMapHeight = 170;
+
+
+        let roadMapMainHeight = (roadMapHeight + 1.4 * 16);
+
+        let betHeight = bodyHeight - videoHeight - roadMapMainHeight;
+        if (betHeight < minBetHeight) {
+            betHeight = minBetHeight;
+            roadMapMainHeight = bodyHeight - videoHeight - betHeight;
+            roadMapHeight = roadMapMainHeight - 1.4 * 16;
+        }
+        console.info(betHeight);
+
+
         bcpRoadMapRoadMapStyle = {
-            paddingTop: 170
+            paddingTop: roadMapHeight
         };
-
+        bcpRoadMapStyle = {
+            // paddingTop: 192.391
+            paddingTop: roadMapMainHeight
+        };
         bcpBetStyle = {
-            height: 311.609
+            // height: 311.609
+            height: betHeight
         };
 
         chipsContainerStyle = {
@@ -412,7 +430,7 @@
                                     <ul>
                                         <li className='active'><a>全部投注区</a></li>
                                         <li className=""><a>高额区</a></li>
-                                        <li className=""><a>低额区</a></li>
+                                        <li className=""><a onClick={tableClick.bind(1)}>低额区</a></li>
                                     </ul>
                                 </div>
 
@@ -467,11 +485,8 @@
         }
     }
 
-    function showCasinoTables() {
 
-    }
-
-    function tableClick(tableId, e) {
+    function tableClick(tableId) {
         console.log(tableId);
         showBcpPage(tableId);
     }
@@ -516,8 +531,9 @@
         }
 
         render() {
-            return (<div className="casino-table" style={this.state.casinoTableStyle} onClick={tableClick.bind(this, this.props.tableId)} >
-                    <div className="casino-table-info" >
+            return (<div className="casino-table" style={this.state.casinoTableStyle}
+                         onClick={tableClick.bind(this.props.tableId)}>
+                    <div className="casino-table-info">
 
                         <div className="casino-table-header">
                             <div className="id">
@@ -536,7 +552,7 @@
                                 className="digit2 spot">{this.state.playerPairCount}</span>
                             </div>
                             <div className="limitmin">
-                                <span>最低投注</span>
+                                <span onClick={tableClick.bind(this.props.tableId)}>最低投注</span>
                                 <span className="digit5 spot">5,000</span>
                             </div>
                         </div>
@@ -569,6 +585,7 @@
 
     function setup() {
         showListPage();
+        //showBcpPage();
     }
 
 
