@@ -22,7 +22,8 @@ const roadChildArray = [
 ];
 
 class Road {
-    constructor() {
+    constructor(app) {
+        this.app = app;
         this.resultArray = new Array();//结果集
         this.resultCount = 0;//总盘数
         this.bankerResultCount = 0;//开庄总数
@@ -56,36 +57,44 @@ class Road {
         this.cockroachRoadLastCol = 0;//曱甴路最后绘画的列
         this.cockroachRoadBeforeIsNull = false;
         this.cockroachRoadLastColTurn = -1;// 曱甴路转弯列
-        if (roadMaxCol === 25) {
+        if (roadMaxCol >= 25) {
             this.markerRoadMaxCol = 11;
             this.cockroachRoadStartY = 17.5;
         } else {
             this.markerRoadMaxCol = 6;
             this.cockroachRoadStartY = 9.5;
         }
+        this.bigRoadMaxCol = (roadMaxCol - this.markerRoadMaxCol) / this.getScaleByType(1) - 1;
+        this.markerChildArray = new Array();
+        this.bigChildArray = new Array();
+        this.bigRoadMaxX = 0;
         //this.generateBigRoad();
     }
 
     // Getter
-    get getResultCount(){
+    get getResultCount() {
         return this.resultCount;
     }
-    get getBankerResultCount(){
+
+    get getBankerResultCount() {
         return this.bankerResultCount;
     }
-    get getPlayerResultCount(){
+
+    get getPlayerResultCount() {
         return this.playerResultCount;
     }
-    get getTieResultCount(){
+
+    get getTieResultCount() {
         return this.tieResultCount;
     }
-    get getBankerPairCount(){
+
+    get getBankerPairCount() {
         return this.bankerPairCount;
     }
-    get getPlayerPairCount(){
+
+    get getPlayerPairCount() {
         return this.playerPairCount;
     }
-
 
 
     get getResultArray() {
@@ -114,7 +123,7 @@ class Road {
 
 
     //添加路纸背景
-    addRoadBackground(app) {
+    addRoadBackground() {
         //draw background line
         let lineColor = 0x000000;
 
@@ -126,7 +135,7 @@ class Road {
             line.lineTo(defaultRoadWidth, y);
             line.x = 0;
             line.y = 0;
-            app.stage.addChild(line);
+            this.app.stage.addChild(line);
         }
         for (let col = 1; col <= 6; col++) {
             let line = new PIXI.Graphics();
@@ -136,7 +145,7 @@ class Road {
             line.lineTo(defaultRoadWidth, y);
             line.x = 0;
             line.y = 0;
-            app.stage.addChild(line);
+            this.app.stage.addChild(line);
         }
         for (let row = 0; row <= roadMaxCol; row++) {
             let line = new PIXI.Graphics();
@@ -146,7 +155,7 @@ class Road {
             line.lineTo(x, defaultRoadHeight);
             line.x = 0;
             line.y = 0;
-            app.stage.addChild(line);
+            this.app.stage.addChild(line);
         }
 
         for (let row = 1; row <= roadMaxCol; row++) {
@@ -157,30 +166,75 @@ class Road {
             line.lineTo(x, defaultRoadHeight);
             line.x = 0;
             line.y = 0;
-            app.stage.addChild(line);
+            this.app.stage.addChild(line);
         }
     }
 
-    addRoadChildDetail(app, roadType, startX, startY, x, y, result) {
-        let childScale = 0.25;
-        if (roadType === 1 || roadType === 5) {
-            childScale = 0.5;
-        } else if (roadType === 0) {
-            childScale = 1;
+    //计算x
+    getDrawX(roadType, oldX) {
+        let x = oldX;
+        switch (roadType) {
+            case 0:
+
+                break;
+            case 1:
+            case 5:
+                //大路缩小2倍
+                // console.info("--- x = "+x+" , bigRoadMaxCol = "+this.bigRoadMaxCol+" , bigRoadLastCol = "+this.bigRoadLastCol);
+                // if (x >= this.bigRoadMaxCol) {
+                //     //超出的都画在最后一列
+                //     x = this.bigRoadMaxCol - 1;
+                // }
+
+                break;
+            case 2:
+            case 3:
+            case 4:
+                //大眼路，小路，曱甴路缩小4倍
+                // scale = scale / 4;
+                break;
         }
-        let padding = defaultPadding * childScale;
-        let childX = startX + padding + x * defaultRoadTdWidth * childScale;
-        let childY = startY + padding + y * defaultRoadTdHeight * childScale;
+        return x;
+    }
+
+    addRoadChildDetail(roadType, startX, startY, x, y, result) {
+        let scale = this.getScaleByType(roadType);
+        let padding = defaultPadding * scale;
+        let childX = startX + padding + x * defaultRoadTdWidth * scale;
+        let childY = startY + padding + y * defaultRoadTdHeight * scale;
         let child = this.createRoadChild(roadType, result);
         child.x = childX;
         child.y = childY;
-        app.stage.addChild(child);
+
+        if (roadType === 0) {
+            // console.info("childX = "+childX+" , x = "+x+" , this.markerRoadMaxCol ="+this.markerRoadMaxCol);
+            this.markerChildArray.push(child);
+            if (x >= this.markerRoadMaxCol) {
+                //超出了要画在最后一列
+
+                child.x -=defaultRoadTdWidth * scale;
+            }
+        } else if (roadType === 1) {
+            if (this.bigChildArray[x] === undefined) {
+                this.bigChildArray[x] = [];
+            }
+            this.bigChildArray[x].push(child);
+            if(x > this.bigRoadMaxX){
+                this.bigRoadMaxX = x;
+            }
+            if (this.bigRoadLastCol >= this.bigRoadMaxCol) {
+                let moveCount = 0;
+                if(this.bigRoadLastCol != this.bigRoadMaxCol){ //向前调整
+                    moveCount = this.bigRoadMaxX - this.bigRoadLastCol;
+                }
+                child.x -= (defaultRoadTdWidth * scale * (x - this.bigRoadMaxCol + 1 + moveCount));
+            }
+
+        }
+        this.app.stage.addChild(child);
     }
 
-    createRoadChild(roadType, result) {
-        let imgName = roadChildArray[roadType][result - 1];
-        let texture = TextureCache[imgName];
-        let sprite = new Sprite(texture);
+    getScaleByType(roadType) {
         let scale = 1;
         switch (roadType) {
             case 1:
@@ -195,6 +249,14 @@ class Road {
                 scale = scale / 4;
                 break;
         }
+        return scale;
+    }
+
+    createRoadChild(roadType, result) {
+        let imgName = roadChildArray[roadType][result - 1];
+        let texture = TextureCache[imgName];
+        let sprite = new Sprite(texture);
+        let scale = this.getScaleByType(roadType);
         sprite.scale.x = scale;
         sprite.scale.y = scale;
         return sprite;
@@ -202,40 +264,40 @@ class Road {
 
 
     //添加路纸精灵
-    addRoadChild(app, stageIndex, addResult) {
+    addRoadChild(stageIndex, addResult) {
         if (addResult[0] !== -1) {
             //Marker Road
             let startX = 0;
             let startY = 0;
-            this.addRoadChildDetail(app, 0, startX, startY, addResult[0], addResult[1], addResult[2]);
+            this.addRoadChildDetail(0, startX, startY, addResult[0], addResult[1], addResult[2]);
         }
         if (addResult[3] !== -1) {
             //Big Road
             let startX = defaultRoadTdWidth * this.markerRoadMaxCol;
             let startY = 0;
-            this.addRoadChildDetail(app, 1, startX, startY, addResult[3], addResult[4], addResult[5]);
+            this.addRoadChildDetail(1, startX, startY, addResult[3], addResult[4], addResult[5]);
             let tieCount = parseInt(addResult[5] / 10);
             if (tieCount >= 1) {
-                this.addRoadChildDetail(app, 5, startX, startY, addResult[3], addResult[4], tieCount);
+                this.addRoadChildDetail(5, startX, startY, addResult[3], addResult[4], tieCount);
             }
         }
         if (addResult[6] !== -1) {
             //Big Eye Road
             let startX = defaultRoadTdWidth * this.markerRoadMaxCol;
             let startY = defaultRoadTdHeight * 3;
-            this.addRoadChildDetail(app, 2, startX, startY, addResult[6], addResult[7], addResult[8]);
+            this.addRoadChildDetail(2, startX, startY, addResult[6], addResult[7], addResult[8]);
         }
         if (addResult[9] !== -1) {
             let startX = defaultRoadTdWidth * this.markerRoadMaxCol;
             let startY = defaultRoadTdHeight * 4.5;
-            this.addRoadChildDetail(app, 3, startX, startY, addResult[9], addResult[10], addResult[11]);
+            this.addRoadChildDetail(3, startX, startY, addResult[9], addResult[10], addResult[11]);
         }
 
         if (addResult[12] !== -1) {
             //17.5
             let startX = defaultRoadTdWidth * this.cockroachRoadStartY;
             let startY = defaultRoadTdHeight * 4.5;
-            this.addRoadChildDetail(app, 4, startX, startY, addResult[12], addResult[13], addResult[14]);
+            this.addRoadChildDetail(4, startX, startY, addResult[12], addResult[13], addResult[14]);
         }
         //console.log(addResult);
     }
@@ -263,8 +325,20 @@ class Road {
         let drawRow = this.resultArray.length % 6;
         if (this.markerRoad[drawCol] === undefined) {
             this.markerRoad[drawCol] = [0, 0, 0, 0, 0, 0];
+            if (drawCol >= this.markerRoadMaxCol) {
+                //处理画的珠盘路超出问题
+                // console.info("drawCol = " + drawCol);
+                for (let i = (drawCol - 6) * 6; i < this.markerChildArray.length; i++) {
+                    if (i < (drawCol - 6) * 6 + 6) {
+                        this.app.stage.removeChild(this.markerChildArray[i]);
+                    } else {
+                        this.markerChildArray[i].x -= defaultRoadTdWidth;
+                    }
+                }
+            }
         }
         this.resultArray.push(newMarker);
+
         this.markerRoad[drawCol][drawRow] = newMarker;
         let addResult = [drawCol, drawRow, newMarker];
         let bigRoadResult = this.addBigRoad(newMarker);
@@ -331,6 +405,19 @@ class Road {
 
             if (this.bigRoad[drawCol] === undefined) {
                 this.bigRoad[drawCol] = [0, 0, 0, 0, 0, 0];
+
+                let scale = this.getScaleByType(1);
+                if (drawCol >= this.bigRoadMaxCol) {
+                    for (let i = (drawCol - this.bigRoadMaxCol); i < this.bigChildArray.length; i++) {
+                        for (let j = 0; j < this.bigChildArray[i].length; j++) {
+                            if (i == (drawCol - this.bigRoadMaxCol)) { //最前列要removeChild
+                                this.app.stage.removeChild(this.bigChildArray[i][j]);
+                            } else {
+                                this.bigChildArray[i][j].x -= (defaultRoadTdWidth * scale);
+                            }
+                        }
+                    }
+                }
             }
             this.bigRoad[drawCol][drawRow] = drawResult;
             let bigEyeRoadResult = this.addBigEyeRoad(newMarker); // 画大眼路

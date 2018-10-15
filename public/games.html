@@ -57,30 +57,79 @@
         }
     }
 
-
     class BcpRoadmap extends React.Component {
+        constructor(props) {
+            super(props);
+            this.roadDivId = "bcpRoadMap" + props.tableId;
+            this.initRoadMapStatus = false;
+            this.state = {
+                casinoTableStyle: casinoTableStyle,
+                resultCount: 0,
+                bankerResultCount: 0,
+                playerResultCount: 0,
+                tieResultCount: 0,
+                bankerPairCount: 0,
+                playerPairCount: 0
+            };
+        }
+
+        componentDidMount() {
+            this.timerID = setInterval(
+                () => this.tick(),
+                1000
+            );
+        }
+
+        componentWillUnmount() {
+            clearInterval(this.timerID);
+        }
+
+        tick() {
+            let road = casionTable.get(this.props.tableId);
+            if (road !== undefined) {
+                this.setState({
+                    resultCount: road.getResultCount,
+                    bankerResultCount: road.getBankerResultCount,
+                    playerResultCount: road.getPlayerResultCount,
+                    tieResultCount: road.getTieResultCount,
+                    bankerPairCount: road.getBankerPairCount,
+                    playerPairCount: road.getPlayerPairCount
+                });
+                if (!this.initRoadMapStatus) {
+                    let roadDiv = document.getElementById(this.roadDivId);
+                    if (roadDiv !== undefined && roadDiv != null) {
+                        let pre = "bcpRoadMap";
+                        roadScale = roadDiv.offsetWidth / defaultRoadWidth;
+                        createRoadMap(this.props.tableId, "bcpRoadMap", road.getResultArray);
+                        this.initRoadMapStatus = true;
+                    }
+                }
+
+            }
+        }
+
         render() {
             return (
                 <div className="bcp-roadmap" style={bcpRoadMapStyle}>
                     <div className="bcp-roadmap-info">
                         <div className="bcp-roadmap-info-col">
                             <span className="left">局</span>
-                            <span className="digit2">51</span>
+                            <span className="digit2">{this.state.resultCount}</span>
                         </div>
                         <div className="bcp-roadmap-info-col bkr"><span className="left">庄</span><span
-                            className="digit2">27</span></div>
+                            className="digit2">{this.state.bankerResultCount}</span></div>
                         <div className="bcp-roadmap-info-col plr"><span className="left">闲</span><span
-                            className="digit2">19</span></div>
+                            className="digit2">{this.state.playerResultCount}</span></div>
                         <div className="bcp-roadmap-info-col tie"><span className="left">和</span><span
-                            className="digit2">4</span></div>
+                            className="digit2">{this.state.tieResultCount}</span></div>
                         <div className="bcp-roadmap-info-col bkrpair"><span className="left">庄对</span><span
-                            className="digit2">6</span></div>
+                            className="digit2">{this.state.bankerPairCount}</span></div>
                         <div className="bcp-roadmap-info-col plrpair"><span className="left">闲对</span><span
-                            className="digit2">3</span></div>
+                            className="digit2">{this.state.playerPairCount}</span></div>
                     </div>
-                    <div className="bcp-roadmap-roadmap" style={bcpRoadMapRoadMapStyle}>
+                    <div className="bcp-roadmap-roadmap" id={this.roadDivId} style={bcpRoadMapRoadMapStyle}>
                     </div>
-                    <div className="ask" style={{paddingTop: 170}}>
+                    <div className="ask" style={askStyle}>
                         <button className="bkr"><span>庄</span>
                             <span className={className1}></span>
                             <span className="single-background ask_icon0001"></span>
@@ -315,30 +364,46 @@
         }
     }
 
-
     class Bcp extends React.Component {
+        constructor(props) {
+            super(props);
+        }
+
         render() {
             return (
                 <div className="scene">
                     <BcpVideo/>
-                    <BcpRoadmap/>
-                    <BcpBet chips={chips}/>
+                    <BcpRoadmap tableId={this.props.tableId}/>
+                    <BcpBet chips={chips} tableId={this.props.tableId}/>
                 </div>
             );
         }
     }
 
     var chips = [];
-    var bcpRoadMapStyle, bcpRoadMapRoadMapStyle, bcpBetStyle, chipsContainerStyle, className1;
+    var bcpRoadMapStyle, bcpRoadMapRoadMapStyle,askStyle, bcpBetStyle, chipsContainerStyle, className1;
 
     function showBcpPage(tableId) {
-        let minBetHeight = 180;
+
+        let minBetHeight = 200;
         let videoHeight = bodyWidth * 0.565039;
 
-        let roadMapHeight = 170;
+        tableWidth = bodyWidth;
+        roadMaxCol = 13;
+        defaultRoadHeight = defaultRoadTdHeight * 6;
+        if (bodyWidth >= 600 || (bodyHeight - videoHeight - minBetHeight) < defaultRoadHeight*roadScale) {
+            roadMaxCol = 25;
+            // if((bodyHeight - videoHeight - minBetHeight) < defaultRoadHeight*roadScale){
+            //     roadMaxCol = (bodyWidth - 1.2 * 16) / (100*roadScale);
+            // }
+        }
+
+        defaultRoadWidth = defaultRoadTdWidth * roadMaxCol;
 
 
-        let roadMapMainHeight = (roadMapHeight + 1.4 * 16);
+        let roadMapHeight = defaultRoadHeight * ((bodyWidth - 1.2 * 16) / defaultRoadWidth);
+
+        let roadMapMainHeight = roadMapHeight + 1.4 * 16;
 
         let betHeight = bodyHeight - videoHeight - roadMapMainHeight;
         if (betHeight < minBetHeight) {
@@ -346,11 +411,14 @@
             roadMapMainHeight = bodyHeight - videoHeight - betHeight;
             roadMapHeight = roadMapMainHeight - 1.4 * 16;
         }
-        console.info(betHeight);
+        console.info("videoHeight "+videoHeight);
+        console.info("roadMapHeight "+roadMapHeight);
+        console.info("roadMapMainHeight "+roadMapMainHeight);
 
 
         bcpRoadMapRoadMapStyle = {
-            paddingTop: roadMapHeight
+            // paddingTop: roadMapHeight
+            paddingTop: 0
         };
         bcpRoadMapStyle = {
             // paddingTop: 192.391
@@ -359,6 +427,10 @@
         bcpBetStyle = {
             // height: 311.609
             height: betHeight
+        };
+
+        askStyle = {
+            paddingTop: roadMapHeight
         };
 
         chipsContainerStyle = {
@@ -385,11 +457,18 @@
             {id: 15, chip: 'chip15', coin: 9999999}
         ];
 
+        // console.info("tableId = "+tableId);
 
         ReactDOM.render(
-            <Bcp/>,
+            <Bcp tableId={tableId}/>,
             document.getElementById('main')
         );
+
+    }
+
+    function tableClick(tableId) {
+        console.info(tableId);
+        showBcpPage(tableId);
     }
 
     class MainList extends React.Component {
@@ -430,7 +509,7 @@
                                     <ul>
                                         <li className='active'><a>全部投注区</a></li>
                                         <li className=""><a>高额区</a></li>
-                                        <li className=""><a onClick={tableClick.bind(1)}>低额区</a></li>
+                                        <li className=""><a onClick={tableClick.bind(this, 2501)}>低额区</a></li>
                                     </ul>
                                 </div>
 
@@ -454,7 +533,9 @@
     var tableIds = [];
     var roadScale = 1;
 
+
     function showListPage() {
+
         tableWidth = bodyWidth;
         roadMaxCol = 13;
         if (bodyWidth >= 600) {
@@ -467,6 +548,8 @@
         }
         defaultRoadWidth = defaultRoadTdWidth * roadMaxCol,
             defaultRoadHeight = defaultRoadTdHeight * 6;
+
+
         casinoTableStyle = {
             width: tableWidth
         };
@@ -486,11 +569,6 @@
     }
 
 
-    function tableClick(tableId) {
-        console.log(tableId);
-        showBcpPage(tableId);
-    }
-
     class CasinoTable extends React.Component {
         constructor(props) {
             super(props);
@@ -501,8 +579,7 @@
                 playerResultCount: 0,
                 tieResultCount: 0,
                 bankerPairCount: 0,
-                playerPairCount: 0,
-                tiePairCount: 0
+                playerPairCount: 0
             };
         }
 
@@ -532,7 +609,7 @@
 
         render() {
             return (<div className="casino-table" style={this.state.casinoTableStyle}
-                         onClick={tableClick.bind(this.props.tableId)}>
+                         onClick={tableClick.bind(this, this.props.tableId)}>
                     <div className="casino-table-info">
 
                         <div className="casino-table-header">
@@ -552,7 +629,7 @@
                                 className="digit2 spot">{this.state.playerPairCount}</span>
                             </div>
                             <div className="limitmin">
-                                <span onClick={tableClick.bind(this.props.tableId)}>最低投注</span>
+                                <span onClick={tableClick.bind(this, 2501)}>最低投注</span>
                                 <span className="digit5 spot">5,000</span>
                             </div>
                         </div>
@@ -585,13 +662,11 @@
 
     function setup() {
         showListPage();
-        //showBcpPage();
+        // showBcpPage(2501);
     }
 
 
-    function createCasionTable(tableId, markerRoadArray) {
-
-
+    function createRoadMap(tableId, divPre, markerRoadArray) {
         let app = new Application({
                 width: defaultRoadWidth,
                 height: defaultRoadHeight,
@@ -608,13 +683,14 @@
         app.renderer.view.style.setProperty("width", defaultRoadWidth * roadScale + "px");
         app.renderer.view.style.setProperty("height", defaultRoadHeight * roadScale + "px");
 
-        document.getElementById("roadMap" + tableId).appendChild(app.view);
+        let roadMapDiv = document.getElementById(divPre + tableId);
+        roadMapDiv.appendChild(app.view);
 
-        const road1 = new Road();
+        const road1 = new Road(app);
         //road1.addRoadBackground(app);
         for (let i = 0; i < markerRoadArray.length; i++) {
             let addResult = road1.addMarkerRoad(markerRoadArray[i]);
-            road1.addRoadChild(app, 0, addResult);
+            road1.addRoadChild(0, addResult);
         }
 
         casionTable.set(tableId, road1);
@@ -627,15 +703,14 @@
             roadScale = info.offsetWidth / defaultRoadWidth;
         }
 
-        let markerRoad2501Array = [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 1,
-            2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1];
+        let markerRoad2501Array = [2,2, 1,2,2,2,1,1,1,1,2,2,1,2,2,1,2,1,2,1,2,1,1,1,1,1,1,1,1,1,2,2,1,2,1,1,2];
 
         if (tableIds.length > 0) {
-            createCasionTable(2501, markerRoad2501Array);
-            createCasionTable(2502, []);
-            createCasionTable(2503, []);
-            createCasionTable(2504, []);
-            createCasionTable(2505, []);
+            createRoadMap(2501, "roadMap", markerRoad2501Array);
+            createRoadMap(2502, "roadMap", []);
+            createRoadMap(2503, "roadMap", []);
+            createRoadMap(2504, "roadMap", []);
+            createRoadMap(2505, "roadMap", []);
             loaded();
         }
     }
